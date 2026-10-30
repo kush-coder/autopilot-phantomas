@@ -1,0 +1,6 @@
+test/webroot/
+coverage/
+*.md
+*.yml
+*.yaml
+*.json

@@ -1,0 +1,1100 @@
+# Defines spec to be run by integration-test.js
+
+# phantomas scope helper functions
+- url: "/phantomas-scope.html"
+  label: "/phantomas-scope.html"
+  metrics:
+    jsErrors: 0
+    asserts: 10
+
+
+# authentication
+- url: "/_401"
+  label: "basic-auth required"
+  error: true # "HTTP response code from <http://127.0.0.1:8888/_401> is 401"
+
+
+# DOM operations
+- url: "/dom-operations.html"
+  options:
+    cookie: "bar=foo;domain=url"
+  metrics:
+    requests: 4
+    gzipRequests: 2
+    htmlCount: 1
+    htmlSize: 946
+    cssCount: 1
+    cssSize: 320
+    jsCount: 1
+    jsSize: 29756 # compressed
+    domains: 1
+    DOMqueries: 20
+    DOMqueriesById: 6
+    DOMqueriesByClassName: 1
+    DOMqueriesByTagName: 10
+    DOMqueriesByQuerySelectorAll: 3
+    DOMinserts: 2 # "div" appended to "html" (from jQuery) and the one below
+    DOMqueriesDuplicated: 2
+    DOMqueriesAvoidable: 2
+    DOMqueriesWithoutResults: 4
+
+  offenders:
+    gzipRequests:
+      - {
+          url: "http://127.0.0.1:8888/dom-operations.html",
+          bodySize: 2094,
+          transferedSize: 946,
+        }
+      - {
+          url: "http://127.0.0.1:8888/static/jquery-2.1.1.min.js",
+          bodySize: 84245,
+          transferedSize: 29734,
+        }
+    htmlCount:
+      - { url: "http://127.0.0.1:8888/dom-operations.html", size: 946 }
+    cssCount:
+      - { url: "http://127.0.0.1:8888/static/style.css", size: 320 }
+    jsCount:
+      - { url: "http://127.0.0.1:8888/static/jquery-2.1.1.min.js", size: 29734 }
+
+    DOMqueriesById:
+      - { id: "foo", node: "#document" }
+      - { id: "delete", node: "#document" }
+      - { id: "foo", node: "#document" }
+      - { id: "list1", node: "#document" }
+      - { id: "list2", node: "#document" }
+      - { id: "foobar", node: "#document" }
+    DOMqueriesByClassName:
+      - { class: "barr", node: "body" }
+    DOMqueriesByTagName:
+      - { tag: "*", node: "div" }
+      - { tag: "body", node: "#document" }
+      - { tag: "script", node: "DocumentFragment > strong[0]" }
+      - { tag: "script", node: "DocumentFragment > strong[0]" }
+      - { tag: "strong", node: "#document" }
+      - { tag: "strong", node: "#document" }
+      - { tag: "li", node: "body > ul#list1" }
+      - { tag: "li", node: "body > ul#list2" }
+      - { tag: "a", node: "div" }
+      - { tag: "a", node: "div" }
+    DOMinserts:
+      - { append: "html > div[2]", node: "html" }
+      - { append: "body > p#foo > strong[0]", node: "body > p#foo" }
+    DOMqueriesDuplicated:
+      - { query: 'id "#foo" (in #document)', count: 2 }
+      - { query: 'tag name "strong" (in #document)', count: 2 }
+
+# DOM mutations
+- url: "/dom-operations.html"
+  metrics:
+    DOMmutationsInserts: 1
+    DOMmutationsRemoves: 1
+    DOMmutationsAttributes: 4
+  offenders:
+    DOMmutationsInserts:
+      - { node: "strong[0]", target: "p#foo" }
+    DOMmutationsRemoves:
+      - { node: "span#delete", target: "body" }
+    DOMmutationsAttributes:
+      - { attribute: "style", node: "body" }
+      - { attribute: "style", node: "body" }
+      - { attribute: "style", node: "p#foo" }
+      - { attribute: "style", node: "p#foo" }
+
+# DOM complexity
+- url: "/dom-complexity.html"
+  metrics:
+    base64Count: 1
+    base64Size: 43
+    bodyHTMLSize: 709
+    commentsSize: 85
+    DOMelementsCount: 11
+    DOMelementMaxDepth: 2
+    DOMidDuplicated: 0
+    hiddenContentSize: 373
+    imagesScaledDown: 0
+    imagesWithoutDimensions: 3
+    hiddenImages: 3
+    nodesWithInlineCSS: 1
+    whiteSpacesSize: 33
+  offenders:
+    hiddenImages:
+      - "http://127.0.0.1:8888/static/mdn.png"
+      - "http://127.0.0.1:8888/static/blank.gif"
+      - "http://127.0.0.1:8888/static/example.svg"
+    nodesWithInlineCSS:
+      - { css: "color: blue", node: "p#foo" }
+
+# document height
+- url: "/document-height.html"
+  metrics:
+    documentHeight: 50000
+
+# image scaling (issue #390)
+- url: "/image-scaling.html"
+  options:
+    "analyze-images": true
+  metrics:
+    imagesScaledDown: 3
+    imagesWithoutDimensions: 3
+    imagesNotOptimized: 1
+    imagesWithIncorrectSizesParam: 1
+    imagesOldFormat: 4
+  offenders:
+    imagesScaledDown: #same url images are not reported twice anymore, picks the largest
+      - {
+          url: "http://127.0.0.1:8888/static/mdn.png?nocache=1",
+          fileSize: 18462,
+          naturalWidth: 600,
+          naturalHeight: 529,
+          newFileSize: 6793,
+          newWidth: 300,
+          newHeight: 265,
+          dpr: 1,
+        }
+      - {
+          url: "http://127.0.0.1:8888/static/mdn.png?nocache=4",
+          fileSize: 18462,
+          naturalWidth: 600,
+          naturalHeight: 529,
+          newFileSize: 6793,
+          newWidth: 300,
+          newHeight: 265,
+          dpr: 1,
+        }
+      - {
+          url: "http://127.0.0.1:8888/static/mdn.png?nocache=6",
+          fileSize: 18462,
+          naturalWidth: 600,
+          naturalHeight: 529,
+          newFileSize: 6793,
+          newWidth: 300,
+          newHeight: 265,
+          dpr: 1,
+        }
+    imagesNotOptimized:
+      - {
+        url: "http://127.0.0.1:8888/static/example.svg",
+        fileSize: 464,
+        newFileSize: 290,
+        }
+    imagesOldFormat:
+      - {
+        url: "http://127.0.0.1:8888/static/mdn.png",
+        fileSize: 20386,
+        newFileSize: 7011,
+        webpSize: 10876,
+        avifSize: 7011,
+        }
+      - {
+        url: "http://127.0.0.1:8888/static/mdn.png?nocache=1",
+        fileSize: 20386,
+        newFileSize: 7011,
+        webpSize: 10876,
+        avifSize: 7011,
+        }
+      - {
+        url: "http://127.0.0.1:8888/static/mdn.png?nocache=4",
+        fileSize: 20386,
+        newFileSize: 7011,
+        webpSize: 10876,
+        avifSize: 7011,
+        }
+      - {
+        url: "http://127.0.0.1:8888/static/mdn.png?nocache=6",
+        fileSize: 20386,
+        newFileSize: 7011,
+        webpSize: 10876,
+        avifSize: 7011,
+        }
+    imagesWithIncorrectSizesParam:
+      - {
+        url: "http://127.0.0.1:8888/static/mdn.png?nocache=6",
+        sizesAttribute: "calc(99vw - 3px - 1em)",
+        convertedInPx: 773,
+        displayWidth: 300,
+        }
+
+# DOM complexity
+- url: "/dom-complexity.html"
+  metrics:
+    base64Count: 1
+    base64Size: 43
+    bodyHTMLSize: 709
+    commentsSize: 85
+    DOMelementsCount: 11
+    DOMelementMaxDepth: 2
+    DOMidDuplicated: 0
+    hiddenContentSize: 373
+    imagesScaledDown: 0
+    imagesWithoutDimensions: 3
+    hiddenImages: 3
+    nodesWithInlineCSS: 1
+    whiteSpacesSize: 33
+  offenders:
+    hiddenImages:
+      - "http://127.0.0.1:8888/static/mdn.png"
+      - "http://127.0.0.1:8888/static/blank.gif"
+      - "http://127.0.0.1:8888/static/example.svg"
+    nodesWithInlineCSS:
+      - { css: "color: blue", node: "p#foo" }
+
+# base64 encoded images
+- url: "/base64.html"
+  options:
+    "analyze-images": true
+  metrics:
+    base64Count: 2
+    base64Size: 9084
+    imagesScaledDown: 1
+    imagesNotOptimized: 2
+    imagesOldFormat: 1
+  offenders:
+    imagesScaledDown: #same url images are not reported twice anymore, picks the largest
+      - {
+          url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcwA [...] BIyAIECVmAICELECRkAYL+H4izvolcsJyXAAAAAElFTkSuQmCC",
+          fileSize: 3980,
+          naturalWidth: 460,
+          naturalHeight: 420,
+          newFileSize: 189,
+          newWidth: 10,
+          newHeight: 10,
+          dpr: 1,
+        }
+    imagesNotOptimized:
+      - {
+        url: "data:image/svg+xml,%3Csvg width='48' height='48' v [...] 1.8254 27.9375 24Z' fill='%23c6c6c6'/%3E%3C/svg%3E",
+        fileSize: 3480,
+        newFileSize: 1832,
+        }
+      - {
+        url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcwA [...] BIyAIECVmAICELECRkAYL+H4izvolcsJyXAAAAAElFTkSuQmCC",
+        fileSize: 5604,
+        newFileSize: 3980,
+        }
+    imagesOldFormat:
+      - {
+        url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcwA [...] BIyAIECVmAICELECRkAYL+H4izvolcsJyXAAAAAElFTkSuQmCC",
+        fileSize: 5604,
+        newFileSize: 1541,
+        webpSize: 2308,
+        avifSize: 1541,
+        }
+
+# duplicated ID (issue #392)
+- url: "/dom-id.html"
+  metrics:
+    DOMidDuplicated: 2 # foo and bar
+
+# inline styles (#397 / #694)
+- url: "/inline-css.html"
+  options:
+    "analyze-css": true
+  metrics:
+    requests: 3
+    cssDuplicatedSelectors: 1
+    cssParsingErrors: 1
+    cssInlineStyles: 3
+    cssLength: 208
+    cssRules: 7
+    cssImportants: 1
+    DOMqueries: 0
+  offenders:
+    cssParsingErrors:
+      - {
+          url: "[inline CSS]",
+          value:
+            {
+              message: "Empty sub-selector",
+              position:
+                {"end": {"column": 43, "line": 2}, "source": "undefined", "start": {"column": 14, "line": 2} },
+            },
+        }
+    cssInlineStyles:
+      - { node: "head > style[1]" }
+      - { node: "body > style[0]" }
+      - { node: "body > style[1]" }
+
+# analyze-css fails to parse a file (#404)
+- url: "/broken-css.html"
+  options:
+    "analyze-css": true
+  metrics:
+    cssParsingErrors: 1
+    cssLength: 91
+    cssRules: 4
+  offenders:
+    cssParsingErrors:
+      - {
+          url: "http://127.0.0.1:8888/static/broken.css",
+          value:
+            {
+              message: "Empty sub-selector",
+              position:
+                {"end": {"column": 41, "line": 1}, "source": "undefined", "start": {"column": 12, "line": 1} },
+            },
+        }
+
+- url: "/dom-operations.html"
+  options:
+    "analyze-css": true
+  metrics:
+    cssParsingErrors: 0
+    cssLength: 22
+    cssRules: 1
+
+# jQuery and events (#440 / #451)
+- url: "/jquery.html"
+  metrics:
+    gzipRequests: 2
+    jQueryVersion: "2.1.1"
+    jQueryOnDOMReadyFunctions: 1
+    jQueryWindowOnLoadFunctions: 1
+    jQuerySizzleCalls: 1
+    jQueryEventTriggers: 2
+    eventsBound: 8
+    eventsDispatched: 1
+    eventsScrollBound: 2
+  offenders:
+    gzipRequests:
+      - {
+          url: "http://127.0.0.1:8888/jquery.html",
+          transferedSize: 761,
+          bodySize: 1027,
+        }
+      - {
+          url: "http://127.0.0.1:8888/static/jquery-2.1.1.min.js",
+          transferedSize: 29734,
+          bodySize: 84245,
+        }
+    eventsDispatched:
+      - { eventType: "click", path: "body > div#foo > span.bar" }
+    eventsBound:
+      - { eventType: "load", path: "window" }
+      - { eventType: "DOMContentLoaded", path: "#document" }
+      - { eventType: "load", path: "window" }
+      - { eventType: "load", path: "window" }
+      - { eventType: "click", path: "body > div#foo > span.bar" }
+      - { eventType: "load", path: "body > div#foo > span.bar" }
+      - { eventType: "scroll", path: "#document" }
+      - { eventType: "scroll", path: "window" }
+    eventsScrollBound:
+      - { element: "#document" }
+      - { element: "window" }
+    jQueryVersionsLoaded:
+      - version: "2.1.1"
+        url: "http://127.0.0.1:8888/static/jquery-2.1.1.min.js"
+    jQueryWindowOnLoadFunctions:
+      - http://127.0.0.1:8888/jquery.html:49:13
+    jQueryEventTriggers:
+      - { type: "click", element: "body > div#foo > span.bar" }
+      - { element: "#document", type: "ready" }
+    jQuerySizzleCalls:
+      - { selector: "#foo .bar", element: "#document" }
+    jQueryDOMReads:
+      - {
+          functionName: "css",
+          arguments: '["color"]',
+          contextPath: "body > div#foo > span.bar",
+        }
+    jQueryDOMWrites:
+      - {
+          functionName: "css",
+          arguments: '[{"color":"red","background":"green"}]',
+          contextPath: "body > div#foo > span.bar",
+        }
+      - {
+          functionName: "css",
+          arguments: '[{"background-color":"blue"}]',
+          contextPath: "body > div#foo",
+        }
+      - {
+          functionName: "css",
+          arguments: '[{"background-color":"blue"}]',
+          contextPath: "body > div#foo",
+        }
+    jQueryDOMWriteReadSwitches:
+      - {
+          functionName: "css",
+          arguments: '["color"]',
+          contextPath: "body > div#foo > span.bar",
+        }
+
+# multiple jQuery "instances" (issue #435)
+- url: "/jquery-multiple.html"
+  flaky: Messes the order of jQueryVersionsLoaded entries
+  metrics:
+    requests: 4
+    jsCount: 2
+    domains: 2
+    maxRequestsPerDomain: 2
+    jQueryVersion: "1.11.1" # the last loaded version
+    jQueryVersionsLoaded: 2
+    jQueryOnDOMReadyFunctions: 1
+  offenders:
+    jQueryVersionsLoaded:
+      - {
+          version: "2.1.1",
+          url: "http://127.0.0.1:8888/static/jquery-2.1.1.min.js",
+        }
+      - { version: "1.11.1", url: "http://code.jquery.com/jquery-1.11.1.js" }
+    globalVariables: ["jQuery", "$"]
+    domains:
+      - { domain: "127.0.0.1", requests: 2 }
+      - { domain: "code.jquery.com", requests: 1 }
+
+# --no-externals handling (issue #535)
+- url: "/jquery-multiple.html"
+  label: "/jquery-multiple.html (with --no-externals)"
+  options:
+    "no-externals": true
+  metrics:
+    requests: 3
+    jsCount: 1
+    blockedRequests: 1
+    domains: 1
+    jsErrors: 0
+    jQueryVersion: "2.1.1"
+  offenders:
+    blockedRequests:
+      - "http://code.jquery.com/jquery-1.11.1.js"
+# accept main domain in allow-domains
+- url: "/jquery-multiple.html"
+  label: "/jquery-multiple.html (with --allow-domain)"
+  options:
+    "no-externals": true
+    "allow-domain": "code.jquery.com"
+  metrics:
+    requests: 4
+    jsCount: 2
+    blockedRequests: 0
+    jQueryVersion: "1.11.1"
+# jQuery read & write operations (issue #436)
+- url: "/jquery-reads-writes.html"
+  metrics:
+    jQueryDOMReads: 5
+    jQueryDOMWrites: 20
+    jQueryDOMWriteReadSwitches: 4
+# jQuery module should not throw any error when run agains an old version (issue #478)
+- url: "/jquery-old-version.html"
+  metrics:
+    jsErrors: 0
+    jQueryVersion: "1.4.4"
+    jQuerySizzleCalls: 0
+    jQueryEventTriggers: 0
+  offenders:
+    assetsNotGzipped:
+      # this JS response is not gzipped deliberately, refer to nginx-static.conf
+      - {
+          url: "http://127.0.0.1:8888/static/jquery-1.4.4.min.js",
+          contentType: "application/javascript",
+        }
+
+# --wait-for-selector
+#- url: "/"
+#  label: "/ (--wait-for-selector with timeout)"
+#  options:
+#    timeout: 1
+#    'wait-for-selector': "#foo"
+#  metrics:
+#    DOMqueries: 0 # no queries should be reported despite DOM being polled by waitForSelector module
+#  exitCode: 252 # timeout
+
+# --wait-for-event (issue #453)
+- url: "/wait-for-event.html"
+  metrics:
+    testFooBar: 1 # first value set
+
+# --wait-for-event (issue #453)
+- url: "/wait-for-event.html"
+  label: "/wait-for-event.html (with --wait-for-event)"
+  options:
+    timeout: 4
+    "wait-for-event": "done"
+  metrics:
+    testFooBar: 123 # a metric set just before event trigger
+  offenders:
+    testFooBar:
+      - "I'm done!"
+
+# --post-load-delay
+- url: "/wait-for-event.html"
+  label: "/wait-for-event.html (with --post-load-delay)"
+  options:
+    timeout: 4
+    "post-load-delay": 1
+  metrics:
+    testFooBar: 1 # first set value
+
+- url: "/wait-for-event.html"
+  label: "/wait-for-event.html (with longer --post-load-delay)"
+  options:
+    timeout: 4
+    "post-load-delay": 3
+  metrics:
+    testFooBar: 123 # a metric set just before event trigger
+  offenders:
+    testFooBar:
+      - "I'm done!"
+
+# requests to (#438 / #486)
+- url: "/timing.html"
+  metrics:
+    requests: 5
+    requestsToDomContentLoaded: 3
+    domainsToDomContentLoaded: 2
+    requestsToDomComplete: 3
+    domainsToDomComplete: 2
+  offenders:
+    domainsToDomContentLoaded:
+      - { domain: "127.0.0.1", requests: 2 }
+      - { domain: "code.jquery.com", requests: 1 }
+    domainsToDomComplete:
+      - { domain: "127.0.0.1", requests: 2 }
+      - { domain: "code.jquery.com", requests: 1 }
+  options:
+    "wait-for-network-idle": true
+
+# JS bottlenecks (#467)
+- url: "/bottlenecks.html"
+  label: "/bottlenecks.html (--spy-eval)"
+  options:
+    "spy-eval": true
+  metrics:
+    documentWriteCalls: 1
+    evalCalls: 2 # via eval() and setTimeout()
+  offenders:
+    documentWriteCalls:
+      - {
+          message: "document.write() used",
+          caller: "http://127.0.0.1:8888/bottlenecks.html:11:11",
+        }
+    evalCalls:
+      - {
+          message: "eval() called directly",
+          caller: "http://127.0.0.1:8888/bottlenecks.html:8:2",
+        }
+      - {
+          message: 'eval() called via setTimeout("foo()")',
+          caller: "http://127.0.0.1:8888/bottlenecks.html:9:2",
+        }
+
+- url: "/bottlenecks.html"
+  metrics:
+    documentWriteCalls: 1
+    evalCalls: 1 # via setTimeout() only
+  offenders:
+    documentWriteCalls:
+      - {
+          message: "document.write() used",
+          caller: "http://127.0.0.1:8888/bottlenecks.html:11:11",
+        }
+    evalCalls:
+      - {
+          message: 'eval() called via setTimeout("foo()")',
+          caller: "http://127.0.0.1:8888/bottlenecks.html:9:2",
+        }
+
+# stop-at-onload (#513)
+- url: "/after-onload.html"
+  label: "/after-onload.html"
+  metrics:
+    imageCount: 1
+    imageSize: 342
+    requests: 3
+  offenders:
+    imageCount:
+      - { url: "http://127.0.0.1:8888/static/blank.gif", size: 342 }
+
+- url: "/after-onload.html"
+  label: "/after-onload.html (with --wait-for-network-idle)"
+  options:
+    "wait-for-network-idle": true
+  metrics:
+    imageCount: 2
+    imageSize: 21032
+    requests: 4
+  offenders:
+    imageCount:
+      - { url: "http://127.0.0.1:8888/static/blank.gif", size: 342 }
+      - { url: "http://127.0.0.1:8888/static/mdn.png", size: 20690 }
+
+# lazy-loadable-images.html (#494)
+- url: "/lazy-loadable-images.html"
+  metrics:
+    lazyLoadableImagesBelowTheFold: 4
+  offenders:
+    lazyLoadableImagesBelowTheFold:
+      - {
+          url: "http://127.0.0.1:8888/static/blank.gif",
+          node: "body > img#dot",
+          offset: 900,
+        }
+      - {
+          url: "http://127.0.0.1:8888/static/example.svg",
+          node: "body > footer[2] > img[2]",
+          offset: 1578,
+        }
+      - {
+          url: "http://127.0.0.1:8888/static/75x120.jpg",
+          node: "body > footer[2] > picture[4] > img[1]",
+          offset: 1508,
+        }
+      - {
+          url: "http://127.0.0.1:8888/static/150x100.jpg",
+          node: "body > footer[2] > img[5]",
+          offset: 1528,
+        }
+
+# JS globals (#482)
+- url: "/js-globals.html"
+  metrics:
+    globalVariables: 3
+    globalVariablesFalsy: 1
+    jsErrors: 0
+  offenders:
+    globalVariables: ["a_global", "falsy", "foo"]
+    globalVariablesFalsy:
+      - { name: "falsy", value: false }
+# JS redirects (#550 + #846)
+- url: "/js-redirect.html"
+  metrics:
+    requests: 5
+    htmlCount: 2
+    jsErrors: 0
+  options:
+    "wait-for-network-idle": true
+    "analyze-css": true
+
+# AJAX requests (#622)
+- url: "/jquery-ajax.html"
+  metrics:
+    ajaxRequests: 3
+    postRequests: 1
+  offenders:
+    ajaxRequests:
+      - { url: "/static/style.css", method: "POST" }
+      - { url: "/static/broken.css", method: "GET" }
+      - { url: "/static/foo", method: "GET" }
+    postRequests:
+      - "http://127.0.0.1:8888/static/style.css"
+  options:
+    "wait-for-network-idle": true
+
+# synchronous AJAX requests (#618)
+- url: "/ajax.html"
+  metrics:
+    ajaxRequests: 2
+    synchronousXHR: 1
+  offenders:
+    ajaxRequests:
+      - { url: "jquery.html", method: "GET" }
+      - { url: "inline-css.html", method: "GET" }
+    synchronousXHR:
+      - { url: "inline-css.html", method: "GET" }
+
+# multiple cookies (#597)
+- url: "/cookies.html"
+  options:
+    "cookie": "bar=foo;path=/"
+  metrics:
+    cookiesRaw: "bar=foo"
+- url: "/cookies.html"
+  options:
+    "cookie": "bar=foo;path=/|test=42"
+  metrics:
+    cookiesRaw: "bar=foo; test=42"
+# local storage (#710)
+- url: "/local-storage.html"
+  metrics:
+    localStorageEntries: 2
+  offenders:
+    localStorageEntries: ["foo", "test"]
+
+# local/session storage injection
+- url: "/local-storage-injection.html"
+  options:
+    "local-storage": "bar=foo"
+  metrics:
+    local-storage: '{"bar":"foo"}'
+- url: "/session-storage-injection.html"
+  options:
+    "session-storage": "bar=foo"
+  metrics:
+    session-storage: '{"bar":"foo"}'
+    
+# JS errors
+- url: "/js-errors.html"
+  metrics:
+    requests: 3
+    jsErrors: 1
+# console.log() calls
+- url: "/console-log.html"
+  metrics:
+    consoleMessages: 2
+  offenders:
+    consoleMessages:
+      - 'log:["Hi!"]'
+      - "Bye, %d! 42"
+
+# headers
+- url: "/headers.html"
+  metrics:
+    requests: 3
+    headersCount: 32
+    headersSentCount: 9
+    headersRecvCount: 23
+    headersRecvSize: 647
+#    headersBiggerThanContent: 1
+#  offenders:
+#    headersBiggerThanContent:
+#     - { url: 'http://127.0.0.1:8888/static/blank.gif', contentSize: 43, headersSize: 287 }
+
+# caching
+- url: "/caching.html"
+  metrics:
+    requests: 3
+    cachingTooShort: 1
+  offenders:
+    cachingTooShort:
+      - { url: "http://127.0.0.1:8888/static/mdn.png", ttl: 86400 }
+
+# requestsStats
+- url: "/headers.html"
+  metrics:
+    requests: 3
+    bodySize: 1065 # uncompressed content of all responses (without headers)
+    contentLength: 1301 # transfered bytes
+    smallestResponse: 342 # headers + body size
+    biggestResponse: 856
+  offenders:
+    smallestResponse:
+      - { url: "http://127.0.0.1:8888/static/blank.gif", size: 342 }
+    biggestResponse:
+      - { url: "http://127.0.0.1:8888/headers.html", size: 856 }
+
+# iframes
+- url: "/iframe.html"
+  metrics:
+    requests: 9 # include requests for iframe and its content
+    iframesCount: 1
+  offenders:
+    iframesCount:
+      - {
+          element: "body > iframe[1]",
+          url: "http://127.0.0.1:8888/image-scaling.html",
+        }
+
+# not found
+- url: "/not-found.html"
+  flaky: Throws "Navigation failed because browser has disconnected!" randomly
+  metrics:
+    requests: 2
+    notFound: 1
+  offenders:
+    requests:
+      - { url: "http://127.0.0.1:8888/not-found.html", type: "html", size: 380 }
+      - {
+          url: "http://127.0.0.1:8888/not_found/foo.js",
+          type: "html",
+          size: 177,
+        }
+    notFound:
+      - "http://127.0.0.1:8888/not_found/foo.js"
+
+# alerts, prompts, confirms
+- url: "/alerts-prompts.html"
+  metrics:
+    windowAlerts: 1
+    windowConfirms: 1
+    windowPrompts: 1
+  offenders:
+    windowAlerts: ["Oh dear!"]
+    windowConfirms: ["Oh dear?"]
+    windowPrompts: ["What's your name, dear?"]
+
+# JSON
+- url: "/ajax-json.html"
+  label: "/ajax-json.html (waiting for 'body.loaded')"
+  options:
+    "wait-for-selector": "body.loaded"
+  metrics:
+    ajaxRequests: 1
+    consoleMessages: 2
+    jsonCount: 1
+    jsonSize: 345
+  offenders:
+    ajaxRequests:
+      - { url: "/foo.json", method: "GET" }
+    jsonCount:
+      - { url: "http://127.0.0.1:8888/foo.json", size: 345 }
+    consoleMessages:
+      - 'log:["Ajax fetched"]'
+      - 'log:["Page fully loaded"]'
+    DOMmutationsAttributes:
+      - { attribute: "class", node: "body" } # we add "loaded" class to <body>
+
+# scroll
+- url: "/lazy-load-scroll.html"
+  metrics:
+    requests: 2
+    imageCount: 0
+
+- url: "/lazy-load-scroll.html"
+  label: "/lazy-load-scroll.html (with --scroll)"
+  options:
+    scroll: true
+  metrics:
+    requests: 3
+    imageCount: 1
+  offenders:
+    imageCount:
+      - { url: "http://127.0.0.1:8888/static/mdn.png", size: 20690 }
+    consoleMessages:
+      - 'log:["Lazy loading /static/mdn.png"]'
+
+# devices
+- url: "/devices.html"
+  label: "/devices.html"
+  metrics:
+    viewport: "800x600" # a default
+
+- url: "/devices.html"
+  label: "/devices.html (with --phone)"
+  options:
+    phone: true
+  metrics:
+    device: "Linux; Android 5.0; SM-G900P Build/LRX21T"
+    viewport: "360x640"
+
+- url: "/devices.html"
+  label: "/devices.html (with --phone-landscape)"
+  options:
+    "phone-landscape": true
+  metrics:
+    device: "Linux; Android 5.0; SM-G900P Build/LRX21T"
+    viewport: "640x360"
+
+- url: "/devices.html"
+  label: "/devices.html (with --tablet)"
+  options:
+    tablet: true
+  metrics:
+    device: "Linux; U; en-us; KFAPWI Build/JDQ39"
+    viewport: "800x1280"
+
+- url: "/devices.html"
+  label: "/devices.html (with --tablet-landscape)"
+  options:
+    "tablet-landscape": true
+  metrics:
+    device: "Linux; U; en-us; KFAPWI Build/JDQ39"
+    viewport: "1280x800"
+
+# viewport
+- url: "/viewport.html"
+  label: "/viewport.html (with --viewport 1100x700)"
+  options:
+    viewport: "1100x700"
+  metrics:
+    viewport: "1100x700"
+    devicePixelRatio: 1
+
+# viewport
+- url: "/viewport.html"
+  label: "/viewport.html (with --viewport 1100x700x2)"
+  options:
+    viewport: "1100x700x2"
+  metrics:
+    viewport: "1100x700"
+    devicePixelRatio: 2
+
+# viewport
+- url: "/viewport.html"
+  label: "/viewport.html (with --viewport 1100x700x2.5)"
+  options:
+    viewport: "1100x700x2.5"
+  metrics:
+    viewport: "1100x700"
+    devicePixelRatio: 2.5
+
+# https and webfonts
+- url: "/https-fonts.html"
+  options:
+    "wait-for-network-idle": true # wait for webfont file
+  metrics:
+    requests: 4
+    httpsRequests: 2
+    webfontCount: 1
+  offenders:
+    domains:
+      - { domain: "127.0.0.1", requests: 2 }
+      - { domain: "fonts.googleapis.com", requests: 1 }
+      - { domain: "fonts.gstatic.com", requests: 1 }
+
+# staticAssets
+- url: "/assets.html"
+  offenders:
+    assetsWithQueryString:
+      - {
+          url: "http://127.0.0.1:8888/static/mdn.png?cb=123",
+          contentType: "image/png",
+        }
+    smallImages:
+      - { url: "http://127.0.0.1:8888/static/blank.gif", size: 342 }
+    smallCssFiles:
+      - { url: "http://127.0.0.1:8888/static/style.css", size: 320 }
+- url: "http://127.0.0.1:5555/basic-auth/foo/bar"
+  label: "httpbin's /basic-auth (with --auth-user and --auth-pass)"
+  flaky: "http-bin sometimes gives us a single response"
+  options:
+    auth-user: "foo"
+    auth-pass: "bar"
+  metrics:
+    requests: 2
+
+# protocols
+# http/1.1 (legacy one)
+- url: "https://127.0.0.1:8889"
+  label: "localhost with http/1.1 and TLS 1.2"
+  metrics:
+    mainDomainHttpProtocol: "http/1.1"
+    oldHttpProtocol: 1
+    mainDomainTlsProtocol: "TLS 1.2"
+    oldTlsProtocol: 1
+  offenders:
+    oldHttpProtocol:
+      - {
+          domain: "https://127.0.0.1",
+          httpVersion: "http/1.1",
+          requests: 2,
+        }
+    oldTlsProtocol:
+      - {
+          domain: "https://127.0.0.1",
+          tlsVersion: "TLS 1.2",
+          beforeDomReady: true,
+        }
+
+# http/2
+- url: "https://127.0.0.1:9000"
+  label: "localhost h2 version"
+  metrics:
+    mainDomainHttpProtocol: "h2"
+    oldHttpProtocol: 0
+    mainDomainTlsProtocol: "TLS 1.3"
+    oldTlsProtocol: 0
+
+# http/3
+# - url: "https://127.0.0.1:9001" # TODO - https://github.com/macbre/phantomas/pull/970
+- url: "https://gf.dev/http3-test"
+  label: "h3"
+  flaky: Reaches the timeout of 5000 ms
+  metrics:
+    mainDomainHttpProtocol: "h3"
+    mainDomainTlsProtocol: "QUIC"
+
+# don't count requests cached by browser
+- url: "/browser-caching.html"
+  metrics:
+    requests: 3
+    bodySize: 84835
+    contentLength: 30376
+  offenders:
+    requests:
+      - { url: "http://127.0.0.1:8888/browser-caching.html", type: "html", size: 517 }
+      - { url: "http://127.0.0.1:8888/static/jquery-2.1.1.min.js", type: "js", size: 29734 }
+      - { url: "http://127.0.0.1:8888/favicon.ico", type: "other", size: 103 }
+
+# don't call MutationObserver on <object> tags
+- url: "/svg-as-object.html"
+  metrics:
+    jsErrors: 0
+
+# screenshot path error
+- url: "/jquery.html"
+  label: "invalid screenshot path"
+  options:
+    screenshot: "non-existing-path/screenshot.png"
+
+# videos
+- url: "/videos.html"
+  metrics:
+    videoCount: 2
+    videoSize: 10535
+  offenders:
+    videoCount:
+      - { url: "http://127.0.0.1:8888/static/stickman.webm", size: 3750 }
+      - { url: "http://127.0.0.1:8888/static/stickman.mp4", size: 6785 }
+
+# user-agent
+- url: "/user-agent.html"
+  label: "default desktop user agent"
+  metrics:
+    device: 'Windows NT 10.0; Win64; x64'
+
+# user-agent
+- url: "/user-agent.html"
+  label: "phone user agent"
+  options:
+    phone: true
+  metrics:
+    device: 'Linux; Android 5.0; SM-G900P Build/LRX21T'
+
+#user-agent
+- url: "/user-agent.html"
+  label: "tablet user agent"
+  options:
+    tablet: true
+  metrics:
+    device: 'Linux; U; en-us; KFAPWI Build/JDQ39'
+
+# user-agent
+- url: "/user-agent.html"
+  label: "custom user agent"
+  options:
+    "user-agent": "customized!"
+  metric:
+    userAgent: 'customized!'
+
+# user-agent
+- url: "/user-agent.html"
+  label: "custom user agent (overwrites mobile)"
+  options:
+    phone: true
+    "user-agent": "customized!"
+  metric:
+    userAgent: 'customized!'
+
+#
+# integration-test-extra section
+#
+# "assertFunction" entry will be taken from "integration-test-extra" module
+#
+
+# page source
+- url: "/page-source.html"
+  options:
+    "page-source": true
+  assertFunction: pageSource # run pageSource() from integration-test-extra.js
+
+# screenshot
+- url: "/image-scaling.html"
+  label: "image-scaling.html (with --screenshot true)"
+  options:
+    screenshot: true
+  assertFunction: screenshot
+
+# screenshot in a folder inside the project
+- url: "/image-scaling.html"
+  label: "image-scaling.html (with --screenshot relative path)"
+  options:
+    screenshot: "screenshot-relative.png"
+  assertFunction: screenshot
+
+# screenshot in a folder outside of the project
+- url: "/image-scaling.html"
+  label: "image-scaling.html (with --screenshot absolute path)"
+  options:
+    screenshot: "/tmp/screenshot-absolute.png"
+  assertFunction: screenshot

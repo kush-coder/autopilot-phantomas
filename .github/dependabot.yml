@@ -1,0 +1,29 @@
+# Basic set up
+# https://help.github.com/en/github/administering-a-repository/configuration-options-for-dependency-updates#package-ecosystem
+
+version: 2
+updates:
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    allow:
+    - dependency-name: "puppeteer"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+        interval: daily
+
+  - package-ecosystem: "docker-compose"
+    directory: "/test"
+    # https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#example
+    patterns: ["*-compose.*"]
+    schedule:
+        interval: daily
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+        interval: daily

@@ -1,0 +1,17 @@
+<body>
+	<script>
+		var a_global = 1,
+			falsy = false;
+
+		function foo() {
+			console.log('bar');
+		}
+
+		// overwrite some core objects (#482)
+		window.navigator = {
+			foo: 'bar'
+		};
+
+		Array.prototype.foo = foo;
+	</script>
+</body>

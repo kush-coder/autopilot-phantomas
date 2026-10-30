@@ -1,0 +1,79 @@
+{
+  "name": "phantomas",
+  "version": "2.26.0",
+  "author": "macbre <maciej.brencz@gmail.com> (http://macbre.net)",
+  "description": "Headless Chromium-based web performance metrics collector and monitoring tool",
+  "main": "./lib/index.js",
+  "bin": {
+    "phantomas": "bin/phantomas.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/macbre/phantomas.git"
+  },
+  "keywords": [
+    "high performance web sites",
+    "metrics",
+    "monitoring",
+    "phantomas",
+    "puppeteer",
+    "chromium",
+    "headless browser",
+    "web development",
+    "webperf"
+  ],
+  "license": "BSD-2-Clause",
+  "engines": {
+    "node": ">=16.0"
+  },
+  "dependencies": {
+    "analyze-css": "^2.1.89",
+    "analyze-image": "^1.0.0",
+    "commander": "^9.0.0",
+    "debug": "^4.4.3",
+    "decamelize": "^6.0.1",
+    "fast-stats": "^0.0.7",
+    "js-yaml": "^4.1.1",
+    "puppeteer": "^25.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@jest/globals": "^30.4.1",
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "glob": "^13.0.6",
+    "globals": "^17.6.0",
+    "jest": "^30.4.2",
+    "prettier": "^3.8.3"
+  },
+  "overrides": {
+    "uuid": "11.x"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules --trace-warnings node_modules/.bin/jest test/ --coverage --detectOpenHandles --forceExit",
+    "unit-test": "node --experimental-vm-modules node_modules/.bin/jest test/results.test.js test/modules/ --coverage --detectOpenHandles --forceExit",
+    "lint": "eslint --cache .",
+    "metadata": "DEBUG=generate node lib/metadata/generate.js",
+    "make-docs": "DEBUG=docs node lib/metadata/make_docs.js",
+    "prettier": "npx prettier --write ."
+  },
+  "jest": {
+    "verbose": true,
+    "reporters": [
+      "default",
+      "github-actions"
+    ],
+    "transform": {},
+    "coverageThreshold": {
+      "global": {
+        "statements": 89,
+        "branches": 80,
+        "functions": 89,
+        "lines": 89
+      }
+    }
+  },
+  "allowScripts": {
+    "puppeteer@25.2.1": true
+  }
+}
